@@ -44,6 +44,11 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+# if SMARTCARD
+#  define OPENSSL_SUPPRESS_DEPRECATED
+/* We need to use engines, which are deprecated */
+# endif
+
 #include <openssl/opensslv.h>
 # if OPENSSL_VERSION_MAJOR >= 3
 #  include <openssl/provider.h>
@@ -3506,6 +3511,7 @@ int main(int argc, char *argv[]) {
     Map entitlements;
     Map requirements;
     std::string key;
+    std::string certuri;
     ldid::Signer *signer = new NoSigner();
     ldid::Slots slots;
 
@@ -3714,6 +3720,11 @@ int main(int argc, char *argv[]) {
                     key = argv[argi] + 2;
             break;
 
+            case 'X':
+                if (argv[argi][2] != '\0')
+                    certuri = argv[argi] + 2;
+            break;
+
             case 'T': break;
 
             case 'u': {
@@ -3741,7 +3752,7 @@ int main(int argc, char *argv[]) {
     if (!key.empty()) {
 #if SMARTCARD
         if (key.compare(0, 7, "pkcs11:") == 0) {
-            signer = new P11Signer(key);
+            signer = new P11Signer(key, certuri.empty() ? key : certuri);
         } else
 #endif
         {
