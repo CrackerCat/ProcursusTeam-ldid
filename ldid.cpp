@@ -3751,13 +3751,11 @@ int main(int argc, char *argv[]) {
 
     if (!key.empty()) {
 #if SMARTCARD
-        if (key.compare(0, 7, "pkcs11:") == 0) {
+        if (key.compare(0, 7, "pkcs11:") == 0)
             signer = new P11Signer(key, certuri.empty() ? key : certuri);
-        } else
+        else
 #endif
-        {
             signer = new P12Signer(Buffer(Map(key, O_RDONLY)));
-        }
     }
 
     size_t filei(0), filee(0);
