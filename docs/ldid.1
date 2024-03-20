@@ -163,11 +163,15 @@ target is a bundle directory, and not a specific Mach-O file.
 can be used on any bundle, not just the root .app, including frameworks,
 appexes, and more.
 .It Fl X Ns Ar file
-Use the certificate in
-.Ar file .
-Only used if the private key is a
-.Ar pkcs11:
-URI, and must also be a
+Adds
+.Ar file 
+as a certificate to be used when signing.
+The first
+.Ar file
+must be the certificate for the signing key, each additional will be added as part of the chain.
+Must be either
+.Ar DER
+encoded certificate or
 .Ar pkcs11:
 URI.
 .El
