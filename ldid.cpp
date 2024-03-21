@@ -2020,7 +2020,7 @@ class P11Signer : public ldid::Signer {
             fprintf(stderr, "ldid: Failed to initialize pkcs11 engine: %s\n", ERR_error_string(ERR_get_error(), NULL));
             exit(1);
         }
-        ENGINE_free(e_);
+        ENGINE_free(e_); // for ENGINE_by_id()
 
         key_ = ENGINE_load_private_key(e_, keyuri.c_str(), NULL, NULL);
         if (key_ == NULL){
@@ -2046,10 +2046,7 @@ class P11Signer : public ldid::Signer {
         sk_X509_pop_free(ca_, X509_free);
         X509_free(cert_);
         EVP_PKEY_free(key_);
-        if (e_) {
-            ENGINE_finish(e_);
-            ENGINE_free(e_);
-        }
+        ENGINE_finish(e_); // for ENGINE_init()
     }
 
     operator EVP_PKEY *() const {
@@ -3793,6 +3790,7 @@ int main(int argc, char *argv[]) {
         return 0;
 
     if (!key.empty()) {
+        delete signer;
         if (key.compare(0, 7, "pkcs11:") == 0) {
 #if SMARTCARD
             signer = new P11Signer(key, certs);
@@ -4104,13 +4102,15 @@ int main(int argc, char *argv[]) {
         ++filei;
     }
 
-# if OPENSSL_VERSION_MAJOR >= 3
-    OSSL_PROVIDER_unload(legacy);
-    OSSL_PROVIDER_unload(deflt);
-# endif
+    delete signer;
 
 # if SMARTCARD
     ENGINE_cleanup();
+# endif
+
+# if OPENSSL_VERSION_MAJOR >= 3
+    OSSL_PROVIDER_unload(legacy);
+    OSSL_PROVIDER_unload(deflt);
 # endif
 
     return filee;
